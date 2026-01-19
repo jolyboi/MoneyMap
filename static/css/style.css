@@ -1,0 +1,206 @@
+html {
+    /* Standard is 16px. Increasing this scales everything using 'rem' */
+    font-size: 18px; 
+}
+
+
+
+/* Palette Setup */
+:root {
+    --primary-green: #3f7d20;
+    --accent-green: #72b01d;
+    --off-white: #f6f5f5;
+    --dark-gray: #1f2937;
+    --almost-black: #0d0a0b;
+}
+
+/* Base Styles */
+body {
+    min-width: 600px;
+    background-color: var(--off-white) !important;
+    color: var(--almost-black);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body::-webkit-scrollbar {
+    display: none;
+}
+
+/* Header Banner */
+.total-banner {
+    background-color: var(--dark-gray);
+    color: var(--off-white);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.total-summary-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--dark-gray); 
+    backdrop-filter: blur(10px);              /* Modern glass effect */
+    color: #f3eff5;                           
+    padding: 15px 0;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.total-label {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 1.2rem;
+    opacity: 0.8;
+}
+
+.total-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #72b01d; 
+}
+
+/* Add padding to body so the last expense isn't hidden behind the bar */
+body {
+    padding-bottom: 80px;
+}
+
+/* Card Styling */
+.day-card {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    border-top: 5px solid var(--primary-green) !important;
+    transition: transform 0.2s ease-in-out;
+}
+
+.day-card:hover {
+    transform: translateY(-5px);
+}
+
+.card-title {
+    color: var(--dark-gray);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.day-total {
+    color: var(--primary-green);
+    font-weight: 800;
+}
+
+.expense-amount {
+    color: var(--primary-green);
+}
+
+.date-subtitle {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+/* Buttons */
+.btn-green {
+    background-color: var(--primary-green) !important;
+    color: white !important;
+    font-weight: 600;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.btn-green:hover {
+    background-color: var(--accent-green);
+    box-shadow: 0 4px 12px rgba(114, 176, 29, 0.3);
+}
+
+.btn {   
+    border-color: transparent !important;
+}
+
+
+/* The container needs to hide things that slide out of its bounds */
+.expenses-list {
+    transition: opacity 0.2s ease;
+}
+
+/* The Animation Class */
+.slide-in-right {
+    animation: slideInRight 0.5s ease-out forwards;
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.5s ease-out forwards;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInLeft {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.day-card, .expense-category {
+    will-change: transform, opacity;
+}
+
+/* Range Badge */
+#date-range-display {
+    background-color: var(--dark-gray);
+    color: var(--off-white);
+    font-size: 0.95rem;
+    padding: 10px 16px;
+}
+
+/* Expense Item list */
+.expense-item {
+    background-color: #ffffff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    padding: 10px;
+    font-size: 0.9rem;
+}
+
+.expense-item span:first-child {
+    color: var(--dark-gray);
+    font-weight: 500;
+}
+
+.expense-category {
+    /* Shape & Size */
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 50px;       
+    min-width: 85px;           
+    text-align: center;
+    
+    /* Typography */
+    color: #ffffff !important;           
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase; 
+    letter-spacing: 0.5px;
+    
+    /* Spacing */
+    margin-right: 8px;         
+}
+
+.btn-delete {
+    background: none;        /* Removes the default button background */
+    border: none;            /* Removes the default border */
+    cursor: pointer;        /* Changes cursor to a hand */
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, background-color 0.2s;
+    border-radius: 4px;
+}
+
+
