@@ -61,7 +61,7 @@ def register_routes(app, expenses):
             return jsonify(expense), 201
         
         except Exception as e:
-            return jsonify({'error': 'Internal server error occured'}), 404
+            return jsonify({'error': 'Internal server error occured'}), 500
     
 
     @app.route('/api/delete/<id>', methods=['DELETE'])
@@ -74,5 +74,30 @@ def register_routes(app, expenses):
                 return jsonify(deleted), 200 
         
         return jsonify({'error': 'Expense not found'}), 500
+    
+    @app.route('/api/edit/<id>', methods=['PUT'])
+    def edit_expense(id):
+        global expenses 
 
+        try:
+            data = request.json
+            edited_expense = {
+                    'id': int(id),
+                    'date': data['date'],
+                    'category': data['category'],
+                    'amount': float(data['amount']),
+                    'description': data.get('description', ''),
+                }
+
+            for i, expense in enumerate(expenses):
+                if int(expense['id']) == int(id):
+                    expenses[i] = edited_expense
+                    return jsonify(edited_expense), 200
+            
+            return jsonify({'error': 'Expense not found'}), 404
+
+        except ValueError:
+            return jsonify({'error': 'Invalid data format'}), 400 
         
+        except Exception as e:
+            return jsonify({'error': 'Internal server error occured'}), 500 

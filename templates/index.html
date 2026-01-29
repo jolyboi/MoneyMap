@@ -16,6 +16,7 @@
             </button>
         </div>
     </div>
+    
 
     <div class="nav-toolbar d-flex justify-content-between align-items-center mb-4">
         <button class="btn" onclick="changeWeek(-1)">
@@ -37,6 +38,8 @@
             <span id="total-amount" class="total-value">$0.00</span>
         </div>
     </div>
+
+    
 
     <div class="row g-4">
         {% set days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] %}
@@ -88,5 +91,24 @@
         </div>
         {% endfor %}
     </div>
+    <div id="editModal">
+            <div class="modalContent">
+                <h3>Edit Expense</h3>
+                <select class="form-select form-select-sm" id="editCategory">
+                    <option value="" selected disabled>Category</option>
+                    {% for category in categories %}
+                        <option class="categories" value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+                <input class="form-control form-control-sm" type="text" id="editDescription" placeholder="Description">
+                <input class="form-control form-control-sm" type="number" id="editAmount" placeholder="Amount">
+                <div class="modal-buttons">
+                    <button class="btn btn-green px-4" onclick="closeModal(event)" class="btn-cancel">Cancel</button>
+                    <button class="btn btn-green px-4" onclick="editExpense(this)" id="saveEditBtn" class="btn-save">Save Changes</button>
+                </div>
+            </div>
+    </div>
 </div>
+
+
 {% endblock %}

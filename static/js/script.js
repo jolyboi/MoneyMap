@@ -77,7 +77,7 @@ async function loadExpenses() {
                     const color = categoryColors[exp.category]; 
 
                     return `
-                        <div class="expense-item d-flex justify-content-between small border-bottom py-1" id="${exp.id}">
+                        <div onclick="handleExpenseClick(this, event)" class="expense-item d-flex justify-content-between small border-bottom py-1" id="${exp.id}">
                             <div>
                                 <span class="expense-category" style="background-color: ${color};">${exp.category}</span>
                                 <span class="expense-description">${exp.description}</span>
@@ -217,7 +217,7 @@ function closeCard(card) {
 }
 
 
-// Happens when clicking save expense button 
+// Triggers on clicking save expense button 
 async function saveNewExpense(button, event) { 
     // Stops card from reacting on this click 
     event.stopPropagation();
@@ -269,6 +269,7 @@ async function saveNewExpense(button, event) {
     }
 }
 
+// Triggers on clicking delete expense button 
 async function deleteExpense(button, event) {
     // Stops card from reacting on this click 
     event.stopPropagation();
@@ -295,6 +296,81 @@ async function deleteExpense(button, event) {
     }
 }
 
+
+function handleExpenseClick(element, event) {
+    event.stopPropagation(); 
+    const modal = document.querySelector("#editModal");
+    // Get the date
+    const card = element.closest('.day-card');
+    const dayName = card.dataset.day;
+    const weekDates = getWeekDates(currentMonday);
+    const dayIndex = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].indexOf(dayName);
+    const date = weekDates[dayIndex];
+    // Save expense's Id and date on the modal 
+    modal.dataset.expenseId = element.id; 
+    modal.dataset.date = date;
+    let category = element.querySelector('.expense-category').innerText; 
+    const description = element.querySelector('.expense-description').innerText; 
+    const amount = element.querySelector('.expense-amount').innerText.replace('€', ''); 
+    // Reformat category
+    category = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+
+    // Show modal 
+    modal.style.display = 'flex';
+    // Put existing values in the modal's fields 
+    document.querySelector('#editCategory').value = category;
+    document.querySelector('#editDescription').value = description;
+    document.querySelector('#editAmount').value = amount;
+    
+    
+}
+
+function closeModal() {
+    document.querySelector("#editModal").style.display = 'none';
+}
+
+
+async function editExpense(element) {
+    const modal = document.querySelector("#editModal");
+    const expenseId = modal.dataset.expenseId; 
+    const date = modal.dataset.date; 
+
+    const category = document.querySelector('#editCategory').value;
+    const description = document.querySelector('#editDescription').value;
+    const amount = document.querySelector('#editAmount').value;
+    
+
+     if (!category || !amount) {
+        alert("Plesase fill in all fields before adding.");
+        return; 
+    }
+
+    const updatedExpense = {
+        date: date,
+        category: category,
+        description: description,
+        amount: amount
+    };
+
+    try {
+        const response = await fetch(`/api/edit/${expenseId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedExpense)
+        });
+
+        if (!response.ok) throw new Error('Failed to add expense');
+        else {
+            // Close edit window and update expense 
+            closeModal();          
+            await loadExpenses();
+        }
+
+    } catch (error) {
+        console.error('Error editing expense', error);
+    }
+    
+}
 
 // Run this when application is loaded
 document.addEventListener('DOMContentLoaded', async () => {
