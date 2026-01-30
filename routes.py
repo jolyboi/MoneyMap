@@ -1,22 +1,9 @@
 from flask import render_template, jsonify, request
+from models import Expense
 from datetime import datetime, timedelta
 
-# hard coded expenses for now 
-expenses = [
-    {'id': 1, 'date': '2026-01-12', 'category': 'Transport', 'amount': 45.50, 'description': 'Bus fare'},  # Monday
-    {'id': 2, 'date': '2026-01-13', 'category': 'Transport', 'amount': 60.00, 'description': ''},                        # Tuesday
-    {'id': 3, 'date': '2026-01-14', 'category': 'Food', 'amount': 32.20, 'description': 'Lunch with friends'}, # Wednesday
-    {'id': 4, 'date': '2026-01-15', 'category': 'Other', 'amount': 15.00, 'description': ''},                             # Thursday
-    {'id': 5, 'date': '2026-01-16', 'category': 'Food', 'amount': 4.50, 'description': ''},                                  # Friday
-    {'id': 6, 'date': '2026-01-16', 'category': 'Leisure', 'amount': 12.00, 'description': 'Movie'}, # Friday
-    {'id': 7, 'date': '2026-01-17', 'category': 'Leisure', 'amount': 85.00, 'description': ''},                          # Saturday
-    {'id': 8, 'date': '2026-01-18', 'category': 'Transport', 'amount': 2.50, 'description': 'Taxi home'},   # Sunday
-    {'id': 9, 'date': '2026-01-20', 'category': 'Transport', 'amount': 2.50, 'description': 'Taxi home'}   # Sunday
-]
-last_id = 9
-        
 
-def register_routes(app, expenses):
+def register_routes(app, db):
 
     # Home Page 
     @app.route('/')
@@ -27,77 +14,96 @@ def register_routes(app, expenses):
     # Returns a json of all expenses 
     @app.route('/api/expenses/<start_date>', methods=['GET'])
     def get_expenses(start_date):
-        global expenses
 
-        start = datetime.strptime(start_date, '%Y-%m-%d') # turn the string into Date object 
+        start = datetime.strptime(start_date, '%Y-%m-%d').date() # turn the string into Date object 
         end = start + timedelta(days=6)
-        end_str = end.strftime('%Y-%m-%d')
+        # end_str = end.strftime('%Y-%m-%d')
 
-        filtered = []
-        for e in expenses: 
-            if start_date <= e['date'] and e['date'] <= end_str:
-                filtered.append(e)
+        # Filter expenses based on starting day 
+        filtered_expenses = Expense.query.filter(
+            Expense.date >= str(start), 
+            Expense.date <= str(end)
+        ).all() 
  
-        return jsonify(filtered)
+        return jsonify([{
+            'id': e.id,
+            'date': e.date, 
+            'category': e.category,
+            'amount': e.amount,
+            'description': e.description
+        } for e in filtered_expenses])
     
 
     # Add expense 
     @app.route('/api/add', methods=['POST'])
     def add_expense(): 
-        global expenses, last_id
 
         try:
             data = request.json
-            expense = {
-                    'id': last_id + 1,
-                    'date': data['date'],
-                    'category': data['category'],
-                    'amount': float(data['amount']),
-                    'description': data['description'],
-                }
-            last_id += 1
-            expenses.append(expense)    # Will change for SQL 
-            print(expenses)
-            return jsonify(expense), 201
+
+
+            expense_sql = Expense(
+                amount=float(data['amount']),
+                category=data['category'],
+                date=data['date'],
+                description=data.get('description', '') 
+            )
+
+            db.session.add(expense_sql)
+            db.session.commit() 
+
+            return jsonify({
+                'message': 'Expense added successfully'
+            }), 201
         
         except Exception as e:
-            return jsonify({'error': 'Internal server error occured'}), 500
+            db.session.rollback() 
+            return jsonify({'error': str(e)}), 500
     
 
-    @app.route('/api/delete/<id>', methods=['DELETE'])
-    def delete_expense(id):
-        global expenses 
+    @app.route('/api/delete/<int:id>', methods=['DELETE'])
+    def delete_expense(id): 
+        expense = Expense.query.get(id)
+        if not expense:
+            return jsonify({'error': 'Expense not found'}), 404
 
-        for i, expense in enumerate(expenses):
-            if int(expense['id']) == int(id):
-                deleted = expenses.pop(i)
-                return jsonify(deleted), 200 
-        
-        return jsonify({'error': 'Expense not found'}), 500
+        try: 
+            db.session.delete(expense)
+            db.session.commit()
+            return jsonify({'message': 'Expense deleted successfully'}), 200
+        except Exception as e: 
+            db.session.rollback() 
+            return jsonify({'error': 'Database error'}), 500
     
-    @app.route('/api/edit/<id>', methods=['PUT'])
+    
+
+    @app.route('/api/edit/<int:id>', methods=['PUT'])
     def edit_expense(id):
-        global expenses 
+        expense = Expense.query.get(id)
+        if not expense:
+            return jsonify({'error': 'Expense not found'}), 404
 
         try:
             data = request.json
-            edited_expense = {
-                    'id': int(id),
-                    'date': data['date'],
-                    'category': data['category'],
-                    'amount': float(data['amount']),
-                    'description': data.get('description', ''),
-                }
+         
+            expense.date = data['date']
+            expense.category = data['category']
+            expense.amount = float(data['amount'])
+            expense.description = data.get('description', '')
 
-            for i, expense in enumerate(expenses):
-                if int(expense['id']) == int(id):
-                    expenses[i] = edited_expense
-                    return jsonify(edited_expense), 200
+            db.session.commit() 
             
-            return jsonify({'error': 'Expense not found'}), 404
+
+            
+                
+            return jsonify({'message': 'Expense updated successfully'}), 200
+            
 
         except ValueError:
+            db.session.rollback() 
             return jsonify({'error': 'Invalid data format'}), 400 
         
         except Exception as e:
+            db.session.rollback() 
             return jsonify({'error': 'Internal server error occured'}), 500 
+        
