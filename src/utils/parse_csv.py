@@ -18,6 +18,8 @@ def parse_csv(file):
 
     expenses = []
 
+    print('analyzing...')
+
     for row in csv_input: 
         # Parse values
         date = row.get("Completed Date")
@@ -34,27 +36,32 @@ def parse_csv(file):
         except ValueError as e:
             print(f'Error validating expense: {e}')
             continue
-
+ 
         # Validate date (expected format: yyyy-mm-dd)
         try: 
             if not date:
                 continue
             # Parse and validate date format
-            date = datetime.strptime(date, '%Y-%m-%d')
+            date = datetime.datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
         except ValueError as e:
             print(f'Error validating date: {e}')
             continue
 
+
         # Clean descriotion string 
         description = description.strip() if description else '' 
 
+
         # Create expense 
         expense = {
-            'date': datetime.strftime(date, '%Y-%m-%d'),
+            'date': datetime.datetime.strftime(date, '%Y-%m-%d'),
             'description': description,
             'amount': amount,
         }
         # Add expense
         expenses.append(expense)
+
+    print('Expenses parsed successfully')
+    print(expenses)
         
     return expenses

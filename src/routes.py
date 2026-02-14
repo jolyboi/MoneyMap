@@ -117,7 +117,7 @@ def register_routes(app, db):
             
         file = request.files['file']
         # Check extension 
-        allowed_extensions = {'.csv'}
+        allowed_extensions = {'csv'}
         if (
             '.' not in file.filename or 
             file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions
@@ -127,7 +127,9 @@ def register_routes(app, db):
 
         try: 
             expense_list = parse_csv(file)
-            print(expense_list)
+
+            if not expense_list:
+                return jsonify({'error': 'No expenses'}), 400 
 
             for expense in expense_list:
 
