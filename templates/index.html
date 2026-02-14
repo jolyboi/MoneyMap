@@ -11,9 +11,12 @@
 
         <div class="d-flex justify-content-between align-items-center">
             <p class="mb-0 opacity-75 h5" id="week-label">Expense Tracker</p>
-            <button class="btn btn-green px-4" id="csvBtn">
-                Upload CSV
+            <div>
+            <input type="file" id="csvFile" onchange="uploadCSV()" style="display: none" accept=".csv" />
+            <button onclick='clickUpload()' class="btn btn-green px-4" id="csvBtn">
+                Upload Expenses
             </button>
+            </div>
         </div>
     </div>
     

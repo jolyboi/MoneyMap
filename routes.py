@@ -1,6 +1,8 @@
 from flask import render_template, jsonify, request
 from models import Expense
 from datetime import datetime, timedelta
+import csv, io 
+from utils.parse_csv import parse_csv
 
 
 def register_routes(app, db):
@@ -39,8 +41,8 @@ def register_routes(app, db):
     def add_expense(): 
 
         try:
-            data = request.json
 
+            data = request.json
 
             expense_sql = Expense(
                 amount=float(data['amount']),
@@ -106,4 +108,47 @@ def register_routes(app, db):
         except Exception as e:
             db.session.rollback() 
             return jsonify({'error': 'Internal server error occured'}), 500 
+        
+    @app.route('/api/upload-csv', methods=['POST'])
+    def upload_csv():
+        # No file error 
+        if 'file' not in request.files: 
+                return jsonify({'error': 'No selected file'}), 400 
+            
+        file = request.files['file']
+        # Check extension 
+        allowed_extensions = {'.csv'}
+        if (
+            '.' not in file.filename or 
+            file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions
+        ):
+            return jsonify({'error': 'File must be a CSV file'}), 400 
+            
+
+        try: 
+            expense_list = parse_csv(file)
+            print(expense_list)
+
+            for expense in expense_list:
+
+                expense_obj = Expense(
+                    amount=float(expense['amount']), 
+                    date=expense['date'],
+                    description=expense.get('description', ''),
+                    category=expense.get('category', 'Other') 
+                ) 
+                
+                db.session.add(expense_obj)
+
+            db.session.commit() 
+
+            return jsonify({
+                'message': f'Successfully imported {len(expense_list)} expenses from {file.filename}'
+            }), 201
+
+        except Exception as e:
+            db.session.rollback() 
+            return jsonify({"error": str(e)}), 500
+
+         
         

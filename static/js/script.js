@@ -368,9 +368,46 @@ async function editExpense(element) {
 
     } catch (error) {
         console.error('Error editing expense', error);
-    }
-    
+    }   
 }
+
+// Trigger the upload logic
+function clickUpload() {
+    document.getElementById('csvFile').click(); 
+}
+//TODO Add status field (loading screen)
+async function uploadCSV() {
+    console.log("Loading started")
+    const fileInput = document.getElementById('csvFile'); 
+    if (fileInput.files.length === 0) return;
+
+    const formData = new FormData(); 
+    formData.append('file', fileInput.files[0]);
+
+    try {
+        const response = await fetch(`/api/upload-csv`, {
+            method: 'POST',
+            body: formData,
+        });
+
+        const data = await response.json(); 
+
+        if (!response.ok) throw new Error('Failed to add expenses');
+
+        console.log(data.message)
+        await loadExpenses();
+
+
+    } catch (error) {
+        console.error('Error uploading the file', error);
+    }   
+
+}
+
+
+
+
+
 
 // Run this when application is loaded
 document.addEventListener('DOMContentLoaded', async () => {
